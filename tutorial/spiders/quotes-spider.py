@@ -1,11 +1,11 @@
 import scrapy
-from scrapy.loader import ItemLoader
+from itemloaders import ItemLoader
 from tutorial.items import ForumPost
 
 class ForumSpider(scrapy.Spider):
     name = "forum"
 
-    start_urls = ['https://www.quakeworld.nu/forum/topic/6688/page/1']
+    start_urls = ['https://www.quakeworld.nu/forum/topic/6352/some-varied-question']
 
     def parse(self, response, **kwargs):
         yield from response.follow_all(

@@ -7,6 +7,8 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+from datetime import datetime
+
 BOT_NAME = 'tutorial'
 
 SPIDER_MODULES = ['tutorial.spiders']
@@ -62,13 +64,14 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   'tutorial.pipelines.ForumPostPipeline': 300,
-}
+# ITEM_PIPELINES = {
+#    'tutorial.pipelines.ForumPostPipeline': 300,
+# }
 
 # Feed to file
 FEED_FORMAT = 'csv'
-FEED_URI = 'file://C:\Users\shrew-badden\Documents\scraping_results'
+FEED_URI = 'quake_test_' + str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S")) + '.csv'
+FEED_EXPORTERS = {'csv': 'scrapy.exporters.CsvItemExporter'}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
