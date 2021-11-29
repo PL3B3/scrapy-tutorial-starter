@@ -5,15 +5,19 @@
 
 import scrapy
 from scrapy import Item, Field
+from scrapy.loader.processors import MapCompose, Join
+from datetime import datetime
 
-class TutorialItem(Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+def convert_date(text):
+    return datetime.strptime(text, '%Y-%m-%d, %H:%M')
 
 class ForumPost(Item):
+    post_id = Field()
     date = Field()
     author = Field()
     text = Field(
-        output_processor=
+        input_processor = MapCompose(str.strip, str.lower),
+        output_processor = Join()
     )
+    # thread = Field()
+    # thread_id = Field()
