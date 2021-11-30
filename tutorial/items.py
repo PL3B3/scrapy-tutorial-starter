@@ -5,7 +5,7 @@
 
 import scrapy
 from scrapy import Item, Field
-from scrapy.loader.processors import MapCompose, Join
+from itemloaders.processors import MapCompose, Join
 from datetime import datetime
 
 def convert_date(text):
