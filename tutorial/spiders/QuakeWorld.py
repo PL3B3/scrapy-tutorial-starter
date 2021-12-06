@@ -6,47 +6,35 @@ from tutorial.utils import split_url
 class ForumSpider(scrapy.Spider):
     name = "quake"
 
-    start_urls = ['https://www.quakeworld.nu/forum/63/north-american-qw']
+    start_urls = ['https://www.quakeworld.nu/forum']
 
     def parse(self, response, **kwargs):
-        yield response.follow(
-            'https://www.quakeworld.nu/forum/36/dmm4-tournament',
-            callback=self.parse_forum
-        )
-    
-    def parse_home(self, response, **kwargs):
         yield from response.follow_all(
-            css="td.forumlist a.forumname::attr(href)",
+            css='a.forumname',
             callback=self.parse_forum
         )
     
-    """
-    Example url: https://www.quakeworld.nu/forum/63/north-american-qw
-    Example url: https://www.quakeworld.nu/forum/63/north-american-qw/page/2
-    Follows links to threads on this forum page
-    Follows up on all pages of this forum
-    """
-    def parse_forum(self, response, **kwargs):
-        # forum_url = response.request.url
-        # forum_id, forum_name = tuple(forum_url.split('/')[-2:])
-        # self.logger.info(f"id: {forum_id} and name: {forum_name}")
-        # thread_titles = response.css('a.forumname-read')
 
+    # Example url: https://www.quakeworld.nu/forum/63/north-american-qw
+    # Follows up on all pages of this forum
+    def parse_forum(self, response, **kwargs):
         yield from response.follow_all(
             self.get_links_from_navbar(response, False), 
             callback=self.parse_forum_page
         )
     
+    
+    # Example url: https://www.quakeworld.nu/forum/63/north-american-qw/page/2
+    # Follows links to threads on this forum page
     def parse_forum_page(self, response, **kwargs):
         yield from response.follow_all(
-            css='a.forumname-read::attr(href)', 
+            css='a.forumname-read', 
             callback=self.parse_thread
         )
 
-    """
-    Example url: https://www.quakeworld.nu/forum/topic/7310/gaming-monitor
 
-    """
+    # Example url: https://www.quakeworld.nu/forum/topic/7310/gaming-monitor
+    # Follows navbar links to all pages in thread
     def parse_thread(self, response, **kwargs):
         yield from response.follow_all(
             self.get_links_from_navbar(response, False), 
@@ -54,9 +42,9 @@ class ForumSpider(scrapy.Spider):
         )
 
 
-    """
-    Example url: https://www.quakeworld.nu/forum/topic/7310/gaming-monitor
-    """
+
+    # Example url: https://www.quakeworld.nu/forum/topic/7310/gaming-monitor
+    # yields post items
     def parse_thread_page(self, response, **kwargs):
         (forum_id, thread_id) = tuple([
             get_end_of_url(nav_url)
@@ -84,10 +72,10 @@ class ForumSpider(scrapy.Spider):
                 'author',
                 'a.link_body::attr(href)'
                 )
-            post_loader.add_css(
-                'post_position_in_thread',
-                'a.forumlink::text'
-            )
+            # post_loader.add_css(
+            #     'post_position_in_thread',
+            #     'a.forumlink::text'
+            # )
             post_loader.add_value(
                 'forum_id',
                 forum_id

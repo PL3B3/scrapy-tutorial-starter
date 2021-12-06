@@ -22,8 +22,6 @@ def get_clean_text(text: str):
 
     return clean_text
 
-
-
 # '#41' => '41'
 def get_post_number(text):
     return text[1:]
@@ -38,8 +36,18 @@ class ForumPost(Item):
         input_processor = MapCompose(get_clean_text),
         output_processor = Join()
     )
-    post_position_in_thread = Field(
-        output_processor = MapCompose(get_post_number)
+    forum_id = Field()
+    thread_id = Field()
+
+class BerserkPost(Item):
+    post_id = Field()
+    date = Field()
+    author = Field(
+        output_processor = MapCompose(get_end_of_url)
+    )
+    text = Field(
+        input_processor = MapCompose(get_clean_text),
+        output_processor = Join()
     )
     forum_id = Field()
     thread_id = Field()

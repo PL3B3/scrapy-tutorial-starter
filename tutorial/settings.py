@@ -69,9 +69,9 @@ ROBOTSTXT_OBEY = True
 # }
 
 # Feed to file
-# FEED_FORMAT = 'csv'
-# FEED_URI = 'csv_results\\quake_test_' + str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S")) + '.csv'
-# FEED_EXPORTERS = {'csv': 'scrapy.exporters.CsvItemExporter'}
+FEED_FORMAT = 'csv'
+FEED_URI = 'csv_results\\%(name)s' + str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S")) + '.csv'
+FEED_EXPORTERS = {'csv': 'scrapy.exporters.CsvItemExporter'}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
