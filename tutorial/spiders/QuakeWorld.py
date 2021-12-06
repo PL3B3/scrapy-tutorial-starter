@@ -1,32 +1,47 @@
 import scrapy
 from itemloaders import ItemLoader
-from tutorial.items import ForumPost
+from tutorial.items import ForumPost, get_end_of_url
+from tutorial.utils import split_url
 
 class ForumSpider(scrapy.Spider):
     name = "quake"
 
-    start_urls = ['https://www.quakeworld.nu/forum']
+    start_urls = ['https://www.quakeworld.nu/forum/63/north-american-qw']
 
     def parse(self, response, **kwargs):
+        yield response.follow(
+            'https://www.quakeworld.nu/forum/36/dmm4-tournament',
+            callback=self.parse_forum
+        )
+    
+    def parse_home(self, response, **kwargs):
         yield from response.follow_all(
             css="td.forumlist a.forumname::attr(href)",
-            callback=self.print_title
+            callback=self.parse_forum
         )
     
     """
-    Example url: https://www.quakeworld.nu/forum/6
-    Gathers links to threads, callbacks to parse_thread
+    Example url: https://www.quakeworld.nu/forum/63/north-american-qw
+    Example url: https://www.quakeworld.nu/forum/63/north-american-qw/page/2
+    Follows links to threads on this forum page
+    Follows up on all pages of this forum
     """
     def parse_forum(self, response, **kwargs):
-        forum_url = response.request.url
-        thread_titles = response.css('a.forumname-read')
-        
-        yield {
-            'title': thread_titles[0].css('::text').get(),
-            'url': forum_url
-        }
+        # forum_url = response.request.url
+        # forum_id, forum_name = tuple(forum_url.split('/')[-2:])
+        # self.logger.info(f"id: {forum_id} and name: {forum_name}")
+        # thread_titles = response.css('a.forumname-read')
 
-        thread_urls = []
+        yield from response.follow_all(
+            self.get_links_from_navbar(response, False), 
+            callback=self.parse_forum_page
+        )
+    
+    def parse_forum_page(self, response, **kwargs):
+        yield from response.follow_all(
+            css='a.forumname-read::attr(href)', 
+            callback=self.parse_thread
+        )
 
     """
     Example url: https://www.quakeworld.nu/forum/topic/7310/gaming-monitor
@@ -35,14 +50,20 @@ class ForumSpider(scrapy.Spider):
     def parse_thread(self, response, **kwargs):
         yield from response.follow_all(
             self.get_links_from_navbar(response, False), 
-            callback=self.parse_page
+            callback=self.parse_thread_page
         )
 
 
     """
     Example url: https://www.quakeworld.nu/forum/topic/7310/gaming-monitor
     """
-    def parse_page(self, response, **kwargs):
+    def parse_thread_page(self, response, **kwargs):
+        (forum_id, thread_id) = tuple([
+            get_end_of_url(nav_url)
+            for nav_url in
+            response.css('div.forumnav a.forumbread::attr(href)').getall()[1:]
+        ])
+
         full_posts = response.css("div.forumpost-0, div.forumpost-1")
 
         for full_post in full_posts:
@@ -63,14 +84,18 @@ class ForumSpider(scrapy.Spider):
                 'author',
                 'a.link_body::attr(href)'
                 )
-            # post_loader.add_css(
-            #     'thread',
-
-            # )
-            # post_loader.add_css(
-            #     'thread_id',
-            #     'div.col_forum + div a.forumlink::text'
-            # )
+            post_loader.add_css(
+                'post_position_in_thread',
+                'a.forumlink::text'
+            )
+            post_loader.add_value(
+                'forum_id',
+                forum_id
+            )
+            post_loader.add_value(
+                'thread_id',
+                thread_id
+            )
 
             post_item = post_loader.load_item()
 

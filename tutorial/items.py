@@ -3,7 +3,7 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 
-import scrapy
+import re
 from scrapy import Item, Field
 from itemloaders.processors import MapCompose, Join
 from datetime import datetime
@@ -14,17 +14,33 @@ def convert_date(text):
 def get_end_of_url(text):
     return text.split('/')[-1]
 
+# lowercases, then removes urls
+def get_clean_text(text: str):
+    clean_text = text.lower()
+    clean_text = re.sub(r'https?://\S+', '', clean_text)
+    # clean_text = re.sub(r'[^a-z ]+', '', clean_text)
+
+    return clean_text
+
+
+
+# '#41' => '41'
+def get_post_number(text):
+    return text[1:]
+
 class ForumPost(Item):
     post_id = Field()
-    date = Field(
-        output_processor = MapCompose(convert_date)
-    )
+    date = Field()
     author = Field(
         output_processor = MapCompose(get_end_of_url)
     )
     text = Field(
-        input_processor = MapCompose(str.strip, str.lower),
+        input_processor = MapCompose(get_clean_text),
         output_processor = Join()
     )
-    # thread = Field()
-    # thread_id = Field()
+    post_position_in_thread = Field(
+        output_processor = MapCompose(get_post_number)
+    )
+    forum_id = Field()
+    thread_id = Field()
+    
