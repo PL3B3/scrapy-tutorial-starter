@@ -25,4 +25,8 @@ class EmptyClosetsSpider(scrapy.Spider):
         li.discussionListItem
     Get thread link
         h3.title > a.PreviewTooltip::attr(href)
+    
+    From post page
+    Get text
+        li.sectionMain.message div.messageContent blockquote.messageText").xpath("normalize-space(.)
     """

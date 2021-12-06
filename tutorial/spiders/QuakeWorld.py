@@ -3,45 +3,40 @@ from itemloaders import ItemLoader
 from tutorial.items import ForumPost
 
 class ForumSpider(scrapy.Spider):
-    name = "forum"
+    name = "quake"
 
-    start_urls = ['https://www.quakeworld.nu/forum/topic/6352/some-varied-question']
+    start_urls = ['https://www.quakeworld.nu/forum']
 
     def parse(self, response, **kwargs):
         yield from response.follow_all(
-            self.get_links_from_navbar(response, False), 
-            callback=self.parse_page)
-
-        # print(response.css("div.forumpost-body div.row:first-child div:not(.bb-quote):not(.bb-quote-header)::text").getall()[-3])
-        # [link.split('\'')[1] for link in response.css("div > div > div.table span.pagenav::attr(onclick)").getall()]
-        # [f"{page_link_prefix}/{page_num + 1}" for page_num in range(int(last_link.split('/')[-1]))]
+            css="td.forumlist a.forumname::attr(href)",
+            callback=self.print_title
+        )
     
     """
     Example url: https://www.quakeworld.nu/forum/6
     Gathers links to threads, callbacks to parse_thread
     """
     def parse_forum(self, response, **kwargs):
+        forum_url = response.request.url
         thread_titles = response.css('a.forumname-read')
         
         yield {
-            'title': thread_titles[0].css('::text').get()
+            'title': thread_titles[0].css('::text').get(),
+            'url': forum_url
         }
 
         thread_urls = []
 
-        yield from response.follow_all(
-            thread_urls,
-
-        )
-    
-
     """
     Example url: https://www.quakeworld.nu/forum/topic/7310/gaming-monitor
-    
 
     """
     def parse_thread(self, response, **kwargs):
-        pass
+        yield from response.follow_all(
+            self.get_links_from_navbar(response, False), 
+            callback=self.parse_page
+        )
 
 
     """
@@ -80,6 +75,15 @@ class ForumSpider(scrapy.Spider):
             post_item = post_loader.load_item()
 
             yield post_item
+
+
+    def print_title(self, response, **kwargs):
+        # self.logger.info('printing title')
+        forum_url = response.request.url
+        yield {
+            'title': response.css("title::text").get(),
+            'url': forum_url
+        }
 
     def get_links_from_navbar(self, response, exclude_first=True):
         urls = response.css(
