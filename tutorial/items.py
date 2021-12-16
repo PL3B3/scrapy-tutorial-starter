@@ -16,9 +16,7 @@ def get_end_of_url(text):
 
 class ForumPost(Item):
     post_id = Field()
-    date = Field(
-        output_processor = MapCompose(convert_date)
-    )
+    date = Field()
     author = Field(
         output_processor = MapCompose(get_end_of_url)
     )
