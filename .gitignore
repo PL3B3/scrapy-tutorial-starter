@@ -1,5 +1,6 @@
 # results
 /csv_results
+/crawls
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
