@@ -64,6 +64,10 @@ class ForumSpider(scrapy.Spider):
                 'text', 
                 'div.forumpost-body div.row:first-child div:not(.bb-quote):not(.bb-quote-header)::text'
                 )
+            post_loader.add_value(
+                'text',
+                full_post.css('div.forumpost-body div.row div.cell:first-child > div').xpath('./text() | .//*[not(@class=\'bb-code\')]/text()')
+            )
             post_loader.add_css(
                 'date',
                 'div.col_forum::text'
